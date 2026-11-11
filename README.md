@@ -5,8 +5,9 @@ Plantilla para preparar el examen: ejercicios **sin resolver** que se corrigen s
 ## 📁 Qué hay en cada sitio
 | Archivo / carpeta | Para qué |
 |---|---|
+| **`Examen_Modelo_16_1_SIN_RESOLVER.ipynb`** | **El modelo de examen completo (secciones 1 a 10) como en el examen real: solo enunciados y celdas vacías. Sin soluciones, sin pistas, sin correcciones** |
 | `enunciado_practica_16_1.md` | El enunciado completo del modelo de examen |
-| `Practica_16_1_PARA_PRACTICAR.ipynb` | **Secciones 1 a 9** en blanco. Cada ejercicio tiene una celda de comprobación ✅/❌ y una pista |
+| `Practica_16_1_PARA_PRACTICAR.ipynb` | Versión de entrenamiento de las secciones 1 a 9: Cada ejercicio tiene una celda de comprobación ✅/❌ y una pista |
 | `hoteles_etl/` | **Sección 10**: proyecto modular Hoteles Brisa (plantilla + corrector) |
 | `mini_app/` | **Sección 10**: mini aplicación de temática libre (requisitos + comprobador de estructura) |
 | `chuleta_examen.md` | Apuntes con los patrones de cada tipo de ejercicio, para llevar al examen |
