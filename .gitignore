@@ -1,6 +1,10 @@
 __pycache__/
 .ipynb_checkpoints/
+.venv/
+venv/
+# Archivos que generan los ejercicios al ejecutarse
+informe_hoteles.csv
 utilidades_tienda.py
 contador.py
-agencia/
 mi_tienda.py
+agencia/

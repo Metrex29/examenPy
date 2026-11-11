@@ -1041,3 +1041,330 @@ Unidades vendidas: 8
 
 ## Sección 10: Programación Modular
 
+---
+
+> **Hoteles Brisa** es una cadena con tres hoteles: *Costa Azul*, *Sierra Nevada* y *Centro Histórico*. Un analista de revenue ha preparado en un notebook el **informe de ingresos por hotel**:
+1. Lee las reservas del día, que llegan en formato CSV.
+2. Descarta las reservas con el número de noches o el precio vacíos o mal escritos.
+3. Descarta las reservas anuladas.
+4. Calcula el importe de cada reserva: noches × precio por noche, con un **10 % de descuento para los socios** del programa de fidelización, más una **tasa turística de 2,50 € por noche** (la tasa no tiene descuento).
+5. Suma noches e ingresos por hotel, ordena de mayor a menor ingreso y calcula el **ingreso medio por noche**.
+6. Muestra el informe por pantalla y lo guarda en `informe_hoteles.csv`.
+La dirección quiere que el informe se ejecute **automáticamente cada noche**. El trabajo consiste en convertir el notebook en un proyecto Python modular que haga **exactamente lo mismo**.
+
+---
+
+> Crear el notebook en VS Code o Jupyter con las siguientes celdas y ejecutarlo para comprobar la salida antes de empezar a modularizar.
+
+**Celda [1]** · Cargar los datos
+
+```python
+datos = """id,cliente,hotel,tipo,noches,precio_noche,estado
+R001, Carmen Vidal ,costa azul,socio,3,95.00,confirmada
+R002,Andrés Molina,SIERRA NEVADA,general,2,120.00,anulada
+R003,Lucía Ferrer,Costa Azul,general,5,95.00,confirmada
+R004,Raúl Ortega,centro histórico,socio,,80.00,confirmada
+R005,Nuria Campos,Sierra Nevada,general,4,120.00,check-out
+R006,Tomás Reyes,centro histórico,general,1,8O.00,confirmada
+R007,Irene Navarro,Centro Histórico,socio,2,80.00,confirmada
+R008,Óscar Prieto,sierra nevada,socio,3,120.00,ANULADA
+R009,Paula Serrano,Sierra Nevada,general,2,135.50,confirmada"""
+lineas = datos.split("\n")[1:]
+print("Reservas leídas:", len(lineas))
+```
+
+```plain text
+Reservas leídas: 9
+```
+
+**Celda [2]** · Limpiar y descartar errores
+
+```python
+reservas = []
+errores = []
+for l in lineas:
+    c = [x.strip() for x in l.split(",")]
+    try:
+        n = int(c[4])
+        p = float(c[5])
+        reservas.append([c[0], c[1].title(), c[2].title(), c[3].lower(), n, p, c[6].lower()])
+    except ValueError:
+        errores.append(c[0])
+print("Reservas con errores:", errores)
+```
+
+```plain text
+Reservas con errores: ['R004', 'R006']
+```
+
+> En `R006` el precio está escrito con una letra **O** en lugar de un cero: `8O.00`.
+
+**Celda [3]** · Quitar las reservas anuladas
+
+```python
+anuladas = [r[0] for r in reservas if r[6] == "anulada"]
+reservas = [r for r in reservas if r[6] != "anulada"]
+print("Reservas anuladas:", anuladas)
+print("Reservas válidas:", len(reservas))
+```
+
+```plain text
+Reservas anuladas: ['R002', 'R008']
+Reservas válidas: 5
+```
+
+**Celda [4]** · Calcular el importe de cada reserva
+
+```python
+def es_socio(r):
+    return r[3] == "socio"
+
+for r in reservas:
+    base = r[4] * r[5]
+    if es_socio(r):
+        base = base * 0.90
+    r.append(round(base + 2.50 * r[4], 2))
+print(reservas[0])
+```
+
+```plain text
+['R001', 'Carmen Vidal', 'Costa Azul', 'socio', 3, 95.0, 'confirmada', 264.0]
+```
+
+**Celda [5]** · Agregar por hotel
+
+```python
+ingresos = {}
+noches = {}
+for r in reservas:
+    ingresos[r[2]] = round(ingresos.get(r[2], 0) + r[7], 2)
+    noches[r[2]] = noches.get(r[2], 0) + r[4]
+ingresos = dict(sorted(ingresos.items(), key=lambda x: x[1], reverse=True))
+```
+
+**Celda [6]** · Mostrar el informe
+
+```python
+print("Informe de ingresos por hotel:")
+for h, t in ingresos.items():
+    print(f"  {h:<17}{noches[h]:>3} noches {t:>9.2f} €   media/noche {t/noches[h]:>7.2f} €")
+print(f"  {'TOTAL':<17}{sum(noches.values()):>3} noches {sum(ingresos.values()):>9.2f} €")
+```
+
+```plain text
+Informe de ingresos por hotel:
+  Sierra Nevada      6 noches    766.00 €   media/noche  127.67 €
+  Costa Azul         8 noches    751.50 €   media/noche   93.94 €
+  Centro Histórico   2 noches    149.00 €   media/noche   74.50 €
+  TOTAL             16 noches   1666.50 €
+```
+
+**Celda [7]** · Guardar el informe en CSV
+
+```python
+with open("informe_hoteles.csv", "w", encoding="utf-8") as f:
+    f.write("hotel,noches,ingresos\n")
+    for h, t in ingresos.items():
+        f.write(f"{h},{noches[h]},{t}\n")
+print("Informe guardado en informe_hoteles.csv")
+```
+
+```plain text
+Informe guardado en informe_hoteles.csv
+```
+
+Contenido de `informe_hoteles.csv`:
+
+```plain text
+hotel,noches,ingresos
+Sierra Nevada,6,766.0
+Costa Azul,8,751.5
+Centro Histórico,2,149.0
+```
+
+---
+
+Antes de escribir código, completar esta tabla con **al menos cinco problemas** concretos del notebook, indicando la celda donde se ve cada uno. Usar como guía la tabla de la Sección 2 del Ejemplo 9.2.
+
+| Problema en el notebook | Dónde se ve (celda y línea) | Consecuencia en producción |
+| --- | --- | --- |
+| … | … | … |
+
+> 💡 Pistas para buscar problemas:
+- ¿Qué pasa si se ejecuta dos veces la celda 4? ¿Y si se salta la celda 3?
+- ¿Qué significan `r[3]`, `r[4]` o `r[7]`?
+- ¿Dónde están escritos el `0.90`, el `2.50`, el `"anulada"` y el `"socio"`?
+- ¿Por qué `es_socio()` está definida en mitad del notebook y depende de la posición `r[3]`?
+- ¿Se podría usar la limpieza de reservas en otro informe sin copiar y pegar?
+
+---
+
+Completar la tabla que indica **a qué módulo y a qué función, clase o constante** va a parar cada celda:
+
+| Celda del notebook | Módulo de producción | Función / clase / constante |
+| --- | --- | --- |
+| Celda 1: cargar los datos |  |  |
+| Celda 2: limpiar y descartar errores |  |  |
+| Celda 3: quitar anuladas |  |  |
+| Celda 4: calcular importes |  |  |
+| Celda 5: agregar por hotel |  |  |
+| Celda 6: mostrar el informe |  |  |
+| Celda 7: guardar en CSV |  |  |
+| `0.90`, `2.50`, `"anulada"`, `"socio"`, nombre del CSV |  |  |
+
+---
+
+### Estructura mínima exigida
+
+```plain text
+hoteles_etl/
+├── main.py                 ← punto de entrada
+└── etl/                    ← paquete del pipeline
+    ├── __init__.py         ← recepción del paquete
+    ├── config.py           ← reglas de negocio y parámetros
+    ├── modelos.py          ← clase Reserva
+    ├── extraccion.py       ← E: obtener las líneas en bruto
+    ├── transformacion.py   ← T: parsear, validar, convertir, filtrar
+    ├── carga.py            ← L: clase InformeHoteles + exportar a CSV
+    └── orquestador.py      ← une E, T y L en el orden correcto
+```
+
+### Requisitos por módulo
+
+| Módulo | Requisitos |
+| --- | --- |
+| `config.py` | Solo constantes en mayúsculas: descuento de socio, tasa turística por noche, estado de anulación, tipo de cliente socio y nombre del fichero de salida. Ningún otro módulo puede tener esos valores escritos «a mano» |
+| `modelos.py` | Clase `Reserva` con atributos con nombre (`id_reserva`, `cliente`, `hotel`, `tipo`, `noches`, `precio_noche`, `estado`). Una `@property` `es_socio` y una `@property` `importe_total` que **se calcula** al pedirla (no se guarda como columna). Método `__repr__` |
+| `extraccion.py` | Función `leer_lineas(texto)` que devuelve las líneas sin la cabecera |
+| `transformacion.py` | Funciones **puras**: `parsear(linea)`, `es_valida(campos)`, `a_reserva(campos)` y `transformar(lineas)`. `transformar()` devuelve las reservas activas, los ids con errores y los ids anulados. Usar al menos un `map()`, un `filter()` con `lambda` y una comprehension |
+| `carga.py` | Clase `InformeHoteles` con `cargar(reservas)`, `__len__`, `por_hotel()` (devuelve, ordenado de mayor a menor ingreso, un diccionario `{hotel: (noches, ingresos)}`) y `total()`. Función `exportar_csv(informe, ruta)` que genera el CSV |
+| `orquestador.py` | Función `ejecutar_pipeline(texto)` que devuelve un diccionario con `leidas`, `errores`, `anuladas` e `informe` |
+| `__init__.py` | Expone `ejecutar_pipeline` y `exportar_csv`. Define `__version__ = "1.0.0"` y `__all__` |
+| `main.py` | Contiene los datos de entrada, una función `mostrar_informe(resultado)`, una función `main()` y el bloque `if __name__ == "__main__":`. **Solo importa del paquete ****`etl`**, nunca de sus módulos internos |
+
+### Reglas de importación
+
+- Dentro del paquete `etl` se usan **imports relativos** (`from .config import TASA_TURISTICA`).
+- Desde `main.py` se usan **imports absolutos** a través de la recepción (`from etl import ejecutar_pipeline, exportar_csv`).
+- No puede haber **imports circulares**: el sentido de las dependencias es `config` → `modelos` → `transformacion` / `carga` → `orquestador` → `__init__` → `main`.
+---
+
+Desde la carpeta del proyecto:
+
+```powershell
+cd hoteles_etl
+python main.py
+```
+
+**Salida esperada** (debe ser **idéntica** a la del notebook, sin la fila de la celda 4):
+
+```plain text
+Reservas leídas: 9
+Reservas con errores: ['R004', 'R006']
+Reservas anuladas: ['R002', 'R008']
+Reservas válidas: 5
+Informe de ingresos por hotel:
+  Sierra Nevada      6 noches    766.00 €   media/noche  127.67 €
+  Costa Azul         8 noches    751.50 €   media/noche   93.94 €
+  Centro Histórico   2 noches    149.00 €   media/noche   74.50 €
+  TOTAL             16 noches   1666.50 €
+Informe guardado en informe_hoteles.csv
+```
+
+El fichero `informe_hoteles.csv` generado debe tener **el mismo contenido** que el del notebook.
+
+---
+
+Crear un archivo `pruebas_manuales.py` en la carpeta `hoteles_etl` que importe **solo** las funciones de `etl.transformacion` y `etl.modelos` y compruebe estos casos sin ejecutar el pipeline completo:
+
+```python
+from etl.transformacion import parsear, es_valida, a_reserva
+
+print(es_valida(parsear("R010,Eva Lara,costa azul,general,2,95.00,confirmada")))
+print(es_valida(parsear("R011,Eva Lara,costa azul,general,2,95,50,confirmada")))
+print(es_valida(parsear("R012,Eva Lara,costa azul,general,,95.00,confirmada")))
+print(a_reserva(parsear("R013, Eva Lara ,COSTA AZUL,Socio,2,100.00,confirmada")).importe_total)
+```
+
+**Salida esperada:**
+
+```plain text
+True
+False
+False
+185.0
+```
+
+> Explicar en un comentario por qué la línea `R011` (precio escrito con **coma decimal**) habría pasado sin error en el notebook y qué importe equivocado habría sumado.
+
+---
+
+56. **El notebook importa el paquete.** Crear un notebook nuevo `analisis.ipynb` en la carpeta `hoteles_etl` que, en lugar de repetir el código, importe `ejecutar_pipeline` y muestre el hotel con mayor ingreso medio por noche.
+---
+
+Diseñar y programar una **mini aplicación de temática libre** cuyo código esté organizado en **paquetes y subpaquetes**. La aplicación debe seguir la forma modular y ejecutarse desde un único `main.py`.
+
+**Requisito estructural mínimo:**
+
+- Al menos **3 paquetes** de primer nivel.
+- Al menos **2 subpaquetes dentro de cada paquete**.
+- Al menos **1 módulo con código en cada subpaquete**.
+---
+
+Se puede elegir cualquiera de estas o proponer otra (con el visto bueno del profesor):
+
+| Aplicación | Posibles paquetes |
+| --- | --- |
+| Gestor de un gimnasio | `socios`, `actividades`, `facturacion` |
+| Alquiler de vehículos | `flota`, `reservas`, `tarifas` |
+| Tienda online de electrónica | `catalogo`, `pedidos`, `envios` |
+| Clínica veterinaria | `pacientes`, `citas`, `cobros` |
+| Taller mecánico | `vehiculos`, `reparaciones`, `presupuestos` |
+| Agencia de viajes | `destinos`, `reservas`, `pagos` |
+| Gestión de un parking | `plazas`, `accesos`, `tarificacion` |
+| Monitor de sensores de una fábrica | `sensores`, `alertas`, `informes` |
+
+---
+
+> Este ejemplo usa la temática **restaurante** solo para mostrar el tipo de organización esperada. Esta temática **no se puede elegir**.
+
+```plain text
+app_restaurante/
+├── main.py
+├── restaurante/                     ← paquete raíz de la aplicación
+│   ├── __init__.py
+│   ├── config.py
+│   ├── carta/                       ← paquete 1
+│   │   ├── __init__.py
+│   │   ├── modelos/                 ← subpaquete 1.1
+│   │   │   ├── __init__.py
+│   │   │   └── platos.py            (Plato, Entrante, Principal, Postre)
+│   │   └── servicios/               ← subpaquete 1.2
+│   │       ├── __init__.py
+│   │       └── filtros.py           (filtrar por precio, alérgenos…)
+│   ├── comandas/                    ← paquete 2
+│   │   ├── __init__.py
+│   │   ├── modelos/                 ← subpaquete 2.1
+│   │   │   ├── __init__.py
+│   │   │   └── comanda.py           (Mesa, Comanda, LineaComanda)
+│   │   └── gestion/                 ← subpaquete 2.2
+│   │       ├── __init__.py
+│   │       └── cocina.py            (cola de comandas, tiempos)
+│   └── caja/                        ← paquete 3
+│       ├── __init__.py
+│       ├── calculos/                ← subpaquete 3.1
+│       │   ├── __init__.py
+│       │   ├── impuestos.py
+│       │   └── descuentos.py
+│       └── informes/                ← subpaquete 3.2
+│           ├── __init__.py
+│           └── cierre.py            (cierre de caja del día)
+└── tests_manuales.py
+```
+
+> Los tres paquetes (`carta`, `comandas`, `caja`) pueden colgar de un **paquete raíz** (`restaurante`) o estar directamente al lado de `main.py`. Las dos opciones son válidas; con paquete raíz los imports quedan `from restaurante.caja.calculos.impuestos import ...`.
+
+---
+
+- Al menos **3 módulos** incluyen un bloque `if __name__ == "__main__":` con pruebas propias que imprimen resultados.
+

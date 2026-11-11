@@ -1,0 +1,13 @@
+{
+    // Los notebooks se ejecutan en su propia carpeta (así "import etl" funciona en hoteles_etl/analisis.ipynb)
+    "jupyter.notebookFileRoot": "${fileDirname}",
+    // El botón ▶ ejecuta el .py desde su carpeta (main.py genera el CSV junto a él y encuentra el paquete etl)
+    "python.terminal.executeInFileDir": true,
+    // Para que el autocompletado reconozca los paquetes de los proyectos
+    "python.analysis.extraPaths": ["./hoteles_etl", "./mini_app"],
+    "files.encoding": "utf8",
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.ipynb_checkpoints": true
+    }
+}
