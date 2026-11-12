@@ -422,3 +422,15 @@ Formato:
 -->
 
 ## Mis dudas del estudio
+
+## [Sección 2 · comprehensions] Cómo entender y construir una comprehension
+**Idea clave:** es un bucle que crea una lista en una línea. `[x*2 for x in lista]` = recorrer la lista y guardar `x*2`. Tres piezas: `[QUÉ GUARDO for x in DÓNDE if FILTRO]`.
+**Patrón / sintaxis:**
+```python
+[x * 2 for x in nums]                    # 1. transformar
+[x for x in nums if x >= 5]              # 2. FILTRAR: if al final, SIN else (lista más corta)
+["ALTO" if x >= 5 else "BAJO" for x in nums]  # 3. CLASIFICAR: if/else DELANTE, con else
+{x for x in nums}                        # set (sin repetidos)
+{k: v for k, v in d.items()}             # diccionario
+```
+**Ojo con:** la posición del `if` es la trampa. ¿Descarto elementos? → `if` al final. ¿Elijo qué valor pongo? → `if/else` delante. Para leerla, fíjate primero en el `for` (qué recorro).
