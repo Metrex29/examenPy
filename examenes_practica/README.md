@@ -9,6 +9,8 @@ Hechos para repasar antes del examen real.
 | `Examen_B.ipynb` | Examen B para hacer |
 | `Examen_A_SOLUCIONES.ipynb` | Soluciones del A (abrir **después** de intentarlo) |
 | `Examen_B_SOLUCIONES.ipynb` | Soluciones del B |
+| `Examen_C.ipynb` | **Examen C (nivel alto)**: MRO, reduce avanzado, recursión anidada |
+| `Examen_C_SOLUCIONES.ipynb` | Soluciones del C |
 
 ## Cómo usarlos
 1. Abre `Examen_A.ipynb`. Resuelve cada pregunta en su celda vacía.
