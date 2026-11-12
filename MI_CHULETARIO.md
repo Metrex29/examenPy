@@ -434,3 +434,13 @@ Formato:
 {k: v for k, v in d.items()}             # diccionario
 ```
 **Ojo con:** la posición del `if` es la trampa. ¿Descarto elementos? → `if` al final. ¿Elijo qué valor pongo? → `if/else` delante. Para leerla, fíjate primero en el `for` (qué recorro).
+
+## [Sección 2 · comprehensions] Fallos típicos: round, guardar el resultado y qué recorro
+**Idea clave:** `round(x, 2)` NO divide: el 2 es el nº de decimales (segundo argumento). Y una comprehension hay que GUARDARLA en una variable; si no, se pierde. Recorre la lista de DATOS, no una vacía, y usa un nombre de variable distinto al de la lista.
+**Patrón / sintaxis:**
+```python
+datos = [8.5, 12.0, 45.9]
+resultado = [round(p * 1.21, 2) for p in datos if p > 10]  # p = cada elemento
+print(resultado)                                           # imprimo el resultado, no 'datos'
+```
+**Ojo con:** "precio con IVA 21%" = `p * 1.21` (no `* 0.21`, que es solo el impuesto). `round(x/2)` divide; lo correcto es `round(x, 2)`.
