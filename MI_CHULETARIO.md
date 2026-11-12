@@ -444,3 +444,12 @@ resultado = [round(p * 1.21, 2) for p in datos if p > 10]  # p = cada elemento
 print(resultado)                                           # imprimo el resultado, no 'datos'
 ```
 **Ojo con:** "precio con IVA 21%" = `p * 1.21` (no `* 0.21`, que es solo el impuesto). `round(x/2)` divide; lo correcto es `round(x, 2)`.
+
+## [Sección 3 · map] Qué hace map()
+**Idea clave:** `map(función, lista)` aplica la función a cada elemento y devuelve los resultados. Es lo mismo que `[f(x) for x in lista]`, pero hay que envolverlo en `list()` para verlo.
+**Patrón / sintaxis:**
+```python
+list(map(lambda x: x * 2, nums))            # [2, 4, 6]
+list(map(lambda c: c["km"], carreras))      # saca un campo de cada diccionario
+```
+**Ojo con:** `map(...)` solo NO vale: imprime `<map object>`. Siempre `list(map(...))`.
