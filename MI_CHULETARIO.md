@@ -1,27 +1,43 @@
 # 📒 Mi chuletario — Examen Python
 
-> Apuntes para el examen. Explicado para entenderlo aunque me haya olvidado.
-> **Mañana:** busca tu tema con `Ctrl+F` (palabras: *lambda, reduce, super, property, recursiva…*).
+> Apuntes para el examen, explicados para entenderlos aunque me haya olvidado.
+> **Cómo buscar rápido:** `Ctrl+F` + una palabra, o mira el índice / la tabla de abajo.
 
-### Índice
-1. [Leer código: qué se muestra](#1-leer-código-qué-se-muestra)
+## Índice
+1. [Leer código: ¿qué se muestra?](#1-leer-código-qué-se-muestra)
 2. [Comprehensions](#2-comprehensions)
-3. [Programación funcional](#3-programación-funcional-lambda-map-filter-reduce)
+3. [Programación funcional (lambda, map, filter, reduce)](#3-programación-funcional-lambda-map-filter-reduce)
 4. [Recursión](#4-recursión)
 5. [Clases y objetos](#5-clases-y-objetos)
 6. [Sobrecarga de operadores](#6-sobrecarga-de-operadores)
 7. [Herencia, polimorfismo y MRO](#7-herencia-polimorfismo-y-mro)
-8. [Refactorizar a clases](#8-refactorizar-ifelif-a-clases)
-9. [Integrador](#9-integrador-mezcla-de-todo)
+8. [Refactorizar if/elif a clases](#8-refactorizar-ifelif-a-clases)
+9. [Integrador (mezcla de todo)](#9-integrador-mezcla-de-todo)
 10. [Programación modular](#10-programación-modular)
-- [Trucos de f-strings y redondeo](#trucos-de-f-strings-y-redondeo)
-- [Errores típicos y qué significan](#errores-típicos-y-qué-significan)
+- [⚡ Trucos: f-strings y redondeo](#-trucos-f-strings-y-redondeo)
+- [❗ Errores típicos y qué significan](#-errores-típicos-y-qué-significan)
+
+## 🔎 Busca rápido por palabra
+| Si veo en el enunciado… | Voy a |
+|---|---|
+| "¿qué muestra / imprime?" | [§1](#1-leer-código-qué-se-muestra) |
+| "una sola list comprehension", `[... for ...]`, set/dict comp | [§2](#2-comprehensions) |
+| `lambda`, `map`, `filter`, `reduce`, `sorted`, función que recibe/devuelve función | [§3](#3-programación-funcional-lambda-map-filter-reduce) |
+| "función recursiva", "sin bucles", caso base | [§4](#4-recursión) |
+| "crea una clase", `__init__`, método, `@classmethod`, `@staticmethod`, composición | [§5](#5-clases-y-objetos) |
+| `__add__`, `__eq__`, `__len__`, `__str__`, `+`, `==`, `in`, `+=` | [§6](#6-sobrecarga-de-operadores) |
+| "hereda de", `super()`, `__mro__`, polimorfismo | [§7](#7-herencia-polimorfismo-y-mro) |
+| "refactoriza", quitar `if/elif` por tipo | [§8](#8-refactorizar-ifelif-a-clases) |
+| ejercicio largo que mezcla todo | [§9](#9-integrador-mezcla-de-todo) |
+| módulo, paquete, `import`, `__init__.py`, `@property`, `if __name__` | [§10](#10-programación-modular) |
+| 2 decimales, alinear columnas, `round`, `//`, `%` | [⚡ Trucos](#-trucos-f-strings-y-redondeo) |
+| nombre de un error (`TypeError`, `ValueError`…) | [❗ Errores](#-errores-típicos-y-qué-significan) |
 
 ---
 
-## 1. Leer código: qué se muestra
+## 1. Leer código: ¿qué se muestra?
 
-**Qué me piden:** mirar un código y decir qué imprime, sin ejecutarlo.
+**Qué me piden:** leer un código y decir qué imprime, sin ejecutarlo. No hay que programar.
 
 ### Atributo de clase vs. de instancia
 ```python
@@ -32,7 +48,8 @@ class Tienda:
         Tienda.total += 1     # subo el contador de la CLASE
 ```
 - `Tienda.total` → el valor compartido.
-- Si hago `t1.total = 10`, **NO** cambio el de la clase: creo un atributo propio de `t1` que "tapa" al de la clase. Los demás objetos siguen viendo el de la clase.
+- `t1.total = 10` **NO** cambia el de la clase: crea un atributo propio de `t1` que "tapa" al de la clase. Los demás objetos siguen viendo el de la clase.
+- **Trampa:** atributo de clase **mutable** (`lista = []` en la clase) → lo comparten TODOS los objetos; un `.append` desde uno lo ve el resto.
 
 ### Listas: copia vs. mismo objeto
 ```python
@@ -40,6 +57,16 @@ b = a         # b y a son EL MISMO objeto. Cambiar b cambia a.
 c = a[:]      # c es una COPIA nueva (también a.copy() o list(a)).
 ```
 - `a is b` → ¿son el mismo objeto? · `a == b` → ¿tienen el mismo contenido?
+
+### Argumento por defecto mutable (trampa clásica)
+```python
+def añadir(x, mochila=[]):     # ⚠️ la lista por defecto se CREA UNA vez y se REUTILIZA
+    mochila.append(x)
+    return mochila
+añadir("a")   # ['a']
+añadir("b")   # ['a', 'b']  ← ¡arrastra la anterior!
+```
+Solución correcta: `def añadir(x, mochila=None): if mochila is None: mochila = []`.
 
 ### Guiones bajos en atributos
 - `self.titular` → público, se usa desde fuera.
@@ -54,13 +81,16 @@ def crear(prefijo):
     return interna
 f = crear("FAC")      # f(15) → "FAC-15"
 ```
-En `factura(albaran(1))` primero se calcula lo de **dentro**: `albaran(1)`, y su resultado entra en `factura`.
+- En `factura(albaran(1))` primero se calcula lo de **dentro**: `albaran(1)`, y su resultado entra en `factura`.
+- Con `nonlocal total` dentro de la función interna, el closure **guarda un estado** entre llamadas (un contador). Dos closures distintos (`c1`, `c2`) tienen cada uno el suyo.
 
 **Ojo con:** recursión sin caso base → `RecursionError`. `print(map(...))` sin `list()` → sale `<map object>`.
 
 ---
 
 ## 2. Comprehensions
+
+**La idea:** un bucle que crea una lista en una línea. `[x*2 for x in lista]` = recorrer la lista y guardar `x*2`. Tres piezas: `[QUÉ GUARDO for x in DÓNDE if FILTRO]`.
 
 **Moldes:**
 ```python
@@ -72,9 +102,10 @@ En `factura(albaran(1))` primero se calcula lo de **dentro**: `albaran(1)`, y su
 [y for sub in lista for y in sub]     # DOS for: aplanar listas de listas
 ```
 
-**La diferencia clave (cae siempre):**
-- `if` **al final** = filtro, decide *qué entra*. La lista puede quedar más corta. No lleva `else`.
-- `if ... else` **delante** = decide *qué valor pongo* para cada elemento. Lleva `else`. Misma longitud.
+**La diferencia clave (cae siempre) — la posición del `if`:**
+- `if` **al final** = filtro, decide *qué entra*. La lista puede quedar más corta. **Sin `else`.**
+- `if ... else` **delante** = decide *qué valor pongo* para cada elemento. **Con `else`.** Misma longitud.
+- Para leer una comp. ajena: fíjate primero en el `for` (qué recorro), luego el principio (qué guardo) y el final (si filtro).
 
 **Tres opciones encadenadas:**
 ```python
@@ -83,7 +114,14 @@ En `factura(albaran(1))` primero se calcula lo de **dentro**: `albaran(1)`, y su
 
 **Útiles:** `lista.count("X")` cuenta apariciones · `texto.strip()` quita espacios · `texto.capitalize()` primera en mayúscula · recorrer diccionario: `for clave, valor in d.items():`
 
-**Ojo con:** redondear dentro → `[round(p*1.21, 2) for p in precios if p > 10]`.
+**Ojo con:**
+- Hay que **guardar** el resultado: `resultado = [...]`. Si no lo asignas, se pierde.
+- Recorre la lista de **datos**, no una vacía; usa un nombre de variable distinto al de la lista (`for p in precios`, no `for precios in precios`).
+- `round(x, 2)` redondea a 2 decimales (el `2` es el nº de decimales, **no** divide). "precio con IVA 21%" = `p * 1.21`.
+```python
+datos = [8.5, 12.0, 45.9]
+resultado = [round(p * 1.21, 2) for p in datos if p > 10]   # correcto
+```
 
 ---
 
@@ -95,11 +133,12 @@ doble = lambda x: x * 2            # doble(3) → 6
 es_grande = lambda x: x >= 10      # devuelve True/False
 ```
 
-**`map` (transformar), `filter` (seleccionar):** devuelven un iterador → envolver en `list()`.
+**`map` (transformar), `filter` (seleccionar):** aplican una función a cada elemento. Devuelven un iterador → **envolver en `list()`** (si no, sale `<map object>`).
 ```python
-list(map(lambda c: c["km"], carreras))                       # saca un campo
+list(map(lambda c: c["km"], carreras))                       # saca un campo de cada dict
 list(filter(lambda c: c["tarjeta"] and c["km"] >= 10, datos))# deja los que cumplen
 ```
+`map(f, lista)` es lo mismo que `[f(x) for x in lista]`; usa el que te pida el enunciado.
 
 **`sorted` (ordenar) y `max`/`min` por un campo:**
 ```python
@@ -110,12 +149,17 @@ max(carreras, key=lambda c: c["km"])                    # el que más km tiene
 **`reduce` (acumular en un solo valor):** hay que importarlo.
 ```python
 from functools import reduce
-# SUMAR un campo → se pone valor inicial 0:
+# SUMAR un campo → valor inicial 0:
 total = reduce(lambda acum, c: acum + c["importe"], carreras, 0)
 # EL MAYOR → sin valor inicial, comparando parejas:
 mayor = reduce(lambda a, b: a if a["km"] >= b["km"] else b, carreras)
-# COMBINAR filter + reduce:
+# filter + reduce combinados:
 km = reduce(lambda acum, c: acum + c["km"], filter(lambda c: c["tarjeta"], carreras), 0)
+# acumular en un DICCIONARIO (avanzado) → valor inicial {}:
+def acum(d, v):
+    d[v["cliente"]] = d.get(v["cliente"], 0) + v["importe"]
+    return d
+por_cliente = reduce(acum, ventas, {})
 ```
 
 **Función que RECIBE una función:**
@@ -142,7 +186,7 @@ nocturna = crear_tarifa(1.35)           # nocturna(10) → 13.5
 ## 4. Recursión
 
 **Receta (siempre):**
-1. **Caso base:** cuándo paro y qué devuelvo (lista vacía, n pequeño…).
+1. **Caso base:** cuándo paro y qué devuelvo (lista vacía, `n` pequeño…).
 2. **Caso recursivo:** un trozo + la función sobre algo **más pequeño**.
 
 ```python
@@ -203,6 +247,12 @@ class Cuenta:
     def cuentas_creadas(cls):              # recibe la CLASE (cls)
         return cls.total_cuentas
 
+    @classmethod
+    def desde_pares(cls, pares):           # CONSTRUCTOR alternativo: devuelve un objeto ya montado
+        obj = cls()
+        # ... rellenar obj ...
+        return obj
+
     @staticmethod
     def desde_texto(t):                    # NO recibe self ni cls
         return Cuenta("X", float(t.replace(",", ".")))
@@ -242,6 +292,7 @@ Hacer que `+`, `==`, `len()`, `in`… funcionen sobre MIS objetos. Cada operador
 | Quiero | Método | Devuelve |
 |---|---|---|
 | `a + b` | `__add__(self, otro)` | **objeto nuevo** |
+| `a * n` | `__mul__(self, n)` | **objeto nuevo** |
 | `a == b` / `a < b` | `__eq__` / `__lt__` | bool |
 | `str(a)` / `print(a)` | `__str__` | str |
 | `float(a)` / `bool(a)` / `len(a)` | `__float__` / `__bool__` / `__len__` | número/bool/int |
@@ -285,7 +336,7 @@ class Camion(Vehiculo):
     def peaje(self):                         # SOBRESCRIBIR ampliando
         return super().peaje() + 2 * self.ejes
 ```
-- **Polimorfismo:** en un bucle `for v in vehiculos: v.peaje()` cada objeto usa SU versión, sin ningún `if` que pregunte el tipo. (Esa es la respuesta a "¿dónde está el polimorfismo?": en la llamada del bucle.)
+- **Polimorfismo:** en un bucle `for v in vehiculos: v.peaje()` cada objeto usa SU versión, sin ningún `if` que pregunte el tipo. (Respuesta a "¿dónde está el polimorfismo?": en la llamada del bucle.)
 - Nombre de la clase del objeto: `type(self).__name__`.
 
 ### Herencia múltiple y MRO (lo más difícil — método en 3 pasos)
@@ -294,9 +345,9 @@ class Camion(Vehiculo):
 2. **`super()` NO es "mi padre"**, es **"la SIGUIENTE clase del MRO"**. En un `D`, el `super()` de `B` llama a **`C`**.
 3. Si cada método hace **primero** `super()` y **después** añade lo suyo (`+ ["x"]`, un `print`…), lo añadido sale en **orden INVERSO al MRO**: primero `A`, luego `C`, `B`, `D`.
 
-**Por qué el abuelo aparece una sola vez:** porque está una vez en el MRO y la cadena de `super()` recorre el MRO.
-**Si una clase NO llama a `super()`:** corta la cadena y las de detrás en el MRO no se ejecutan (se pierde su parte).
-**Si cambio el orden de los padres:** cambia el MRO y con él el orden de los resultados.
+- **Por qué el abuelo aparece una sola vez:** está una vez en el MRO y la cadena de `super()` recorre el MRO.
+- **Si una clase NO llama a `super()`:** corta la cadena y las de detrás en el MRO no se ejecutan (se pierde su parte).
+- **Si cambio el orden de los padres:** cambia el MRO y con él el orden de los resultados.
 
 Ejemplo: `Administrador(Editor, Moderador)` → MRO `Administrador → Editor → Moderador → Usuario`. Constructores que imprimen *después* de `super()` → salen `Usuario, Moderador, Editor, Administrador`.
 
@@ -392,14 +443,14 @@ class Reserva:
 
 ---
 
-## Trucos de f-strings y redondeo
+## ⚡ Trucos: f-strings y redondeo
 - `f"{x:.2f}"` → 2 decimales · `f"{x:.1f}"` → 1 decimal.
 - `f"{x!r}"` → con comillas (para `'Laura'`).
 - Alinear en columnas: `f"{h:<17}"` izquierda ancho 17 · `f"{n:>3}"` derecha ancho 3 · `f"{t:>9.2f}"` derecha, 2 decimales.
 - `round(2.5)` → `2` y `round(3.5)` → `4` (redondea al par). Con decimales de coma flotante, `round(x, 2)` arregla comparaciones.
 - `7 // 2` → 3 (entera) · `7 % 2` → 1 (resto) · `7 / 2` → 3.5.
 
-## Errores típicos y qué significan
+## ❗ Errores típicos y qué significan
 | Error | Causa habitual |
 |---|---|
 | `AttributeError` | atributo/método que no existe (ej. `obj.__pin` con name mangling) |
@@ -422,34 +473,4 @@ Formato:
 -->
 
 ## Mis dudas del estudio
-
-## [Sección 2 · comprehensions] Cómo entender y construir una comprehension
-**Idea clave:** es un bucle que crea una lista en una línea. `[x*2 for x in lista]` = recorrer la lista y guardar `x*2`. Tres piezas: `[QUÉ GUARDO for x in DÓNDE if FILTRO]`.
-**Patrón / sintaxis:**
-```python
-[x * 2 for x in nums]                    # 1. transformar
-[x for x in nums if x >= 5]              # 2. FILTRAR: if al final, SIN else (lista más corta)
-["ALTO" if x >= 5 else "BAJO" for x in nums]  # 3. CLASIFICAR: if/else DELANTE, con else
-{x for x in nums}                        # set (sin repetidos)
-{k: v for k, v in d.items()}             # diccionario
-```
-**Ojo con:** la posición del `if` es la trampa. ¿Descarto elementos? → `if` al final. ¿Elijo qué valor pongo? → `if/else` delante. Para leerla, fíjate primero en el `for` (qué recorro).
-
-## [Sección 2 · comprehensions] Fallos típicos: round, guardar el resultado y qué recorro
-**Idea clave:** `round(x, 2)` NO divide: el 2 es el nº de decimales (segundo argumento). Y una comprehension hay que GUARDARLA en una variable; si no, se pierde. Recorre la lista de DATOS, no una vacía, y usa un nombre de variable distinto al de la lista.
-**Patrón / sintaxis:**
-```python
-datos = [8.5, 12.0, 45.9]
-resultado = [round(p * 1.21, 2) for p in datos if p > 10]  # p = cada elemento
-print(resultado)                                           # imprimo el resultado, no 'datos'
-```
-**Ojo con:** "precio con IVA 21%" = `p * 1.21` (no `* 0.21`, que es solo el impuesto). `round(x/2)` divide; lo correcto es `round(x, 2)`.
-
-## [Sección 3 · map] Qué hace map()
-**Idea clave:** `map(función, lista)` aplica la función a cada elemento y devuelve los resultados. Es lo mismo que `[f(x) for x in lista]`, pero hay que envolverlo en `list()` para verlo.
-**Patrón / sintaxis:**
-```python
-list(map(lambda x: x * 2, nums))            # [2, 4, 6]
-list(map(lambda c: c["km"], carreras))      # saca un campo de cada diccionario
-```
-**Ojo con:** `map(...)` solo NO vale: imprime `<map object>`. Siempre `list(map(...))`.
+*(aún no hay dudas nuevas sin integrar — las que han ido saliendo ya están en sus secciones de arriba)*
